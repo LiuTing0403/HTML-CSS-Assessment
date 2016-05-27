@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<title>To Do List</title>
+	<meta charset="utf-8" content="width=device-width, initial-scale=1" name="viewport">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<main>
+		<label for="show_nav" class="menu"><img src="images/menu_icon.png" alt="list_icon"></label>
+		<input type="checkbox" name="show_nav" id="show_nav" hidden>
+		<nav>
+			<section class="all_todos">
+				<ul>
+					<li class="list_header"><a href="#">All Todos <span class="tag">18</span></a></li>
+					<li class="selected"><a href="#">02/16 <span class="tag">8</span></a></li>
+					<li><a href="#">03/16 <span class="tag">2</span></a></li>
+					<li><a href="#">04/16 <span class="tag">1</span></a></li>
+					<li><a href="#">05/16 <span class="tag">1</span></a></li>
+					<li><a href="#">06/16 <span class="tag">6</span></a></li>
+				</ul>
+			</section>
+			<section class="completed">
+				<ul>
+					<li class="list_header"><a href="#">Completed <span>18</span></a></li>
+					<li><a href="#">02/15</a></li>
+					<li><a href="#">03/15</a></li>
+					<li><a href="#">04/15</a></li>
+					<li><a href="#">05/15</a></li>
+					<li><a href="#">06/14</a></li>
+				</ul>
+				
+			</section>
+		</nav>
+		<div class="content">
+			<h3>02/16 <span class="tag">8</span></h3>
+			<form action="" method="get" class="detailed_list">
+				<ul>
+					<li>
+						<label><input type="checkbox" name="add" hidden>Add new to do</label>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item1">Item 1</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item2">Item 2</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label class="deleted"><input type="checkbox" name="item3">Item 3</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label class="deleted"><input type="checkbox" name="item4">Item 4</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label class="deleted"><input type="checkbox" name="item5">Item 5</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item6">Item 6</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item7">Item 7</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item8">Item 8</label>
+						<button class="delete_button"></button>
+					</li>
+					<li>
+						<label><input type="checkbox" name="item9">Item 9</label>
+						<button type="button" class="delete_button"></button>
+					</li>
+				</ul>
+			</form>
+			<!--Add class="popup" to show the model -->
+			<div hidden>  
+				<form action="" method="post">
+					<table>
+						<tr>
+							<td><label for="title">Title</label></td>
+							<td><input type="text" name="title" id="title" value="Item"></td>
+						</tr>
+						<tr>						
+							<td><label for="date">Due Date</label></td>
+							<td><input type="number" name="date" max="31" min="1" id="date" value="16" placeholder="Date">
+							<input type="number" name="month" max="12" min="1" id="month" placeholder="Month">
+							<input type="number" name="year" min="1900" id="year" placeholder="Year"></td>
+						</tr>
+						<tr>
+							<td class="align_top"><label for="description">Description</label>
+							<td><textarea placeholder="Description" id="description"></textarea>
+						</tr>
+						<tr>
+							<td></td>
+							<td>
+								<button type="button">Save</button>
+								<button type="button">Mark As Complete</button>
+							</td>
+						</tr>
+					</table>
+				</form>
+			</div>
+			
+		</div>
+	</main>
+</body>
+</html>
