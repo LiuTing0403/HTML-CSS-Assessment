@@ -137,6 +137,22 @@
 			<button class="delete_button"></button>
 		</li>
 	</script>
+	<script type="text/x-handlebars-template" id="nav_todo_item_template">
+		{{#each item}}
+		<li><a href="#" id="{{key}}">{{display_name}}<span class="tag">{{count}}</span></a></li>
+		{{/each}}
+	</script>
+	<script type="text/x-handlebars-template" id="nav_completed_item_template">
+		{{#each item}}
+		<li><a href="#" id="{{key}}">{{display_name}}</a></li>
+		{{/each}}
+	</script>
+	<script type="text/x-handlebars-template" id="todos_header_template">
+		<h3 id="date">{{due_month}}
+		{{#if uncompleted}}
+		<span class="tag">{{count}}</span></h3>
+		{{/if}}
+	</script>
 
 </body>
 </html>
