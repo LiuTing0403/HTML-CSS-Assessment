@@ -1,11 +1,11 @@
 var Todo_list = function(){
   this.todos = [];
-  this.last_id = 0;
   this.todo_due_month = {};
   this.completed_due_month = {};
   this.init = function(){
     this.getStorage();
     this.getDueMonthData();
+    this.last_id = this.getLastId();
   };
 };
 Todo_list.prototype.getLastId = function(){
@@ -16,7 +16,7 @@ Todo_list.prototype.getLastId = function(){
   return id;
 }
 Todo_list.prototype.addNewToDoItem = function(item){
-  item.id = this.last_id;
+  item.id = this.last_id + 1;
   this.last_id += 1;
   this.todos.unshift(item);
   this.getDueMonthData();
@@ -66,6 +66,9 @@ Todo_list.prototype.getStorage = function(){
     return [];
   })();
 };
+Todo_list.prototype.setStorage = function(){
+  localStorage.setItem("todos", JSON.stringify(this.todos));
+}
 
 Todo_list.prototype.getDueMonthData = function(){
   var completed_due_month = {};
@@ -81,8 +84,8 @@ Todo_list.prototype.getDueMonthData = function(){
       else { todo_due_month[item.due_month] = 1; }
     }
   });
-  this.completed_due_month = completed_due_month;
-  this.todo_due_month = todo_due_month;
+
+  return { completed_due_month: completed_due_month, todo_due_month: todo_due_month; }
 };
 Todo_list.prototype.getToDoItemsByDueMonth = function(due_month){
   var result;
@@ -335,11 +338,11 @@ Controller.prototype.updateItem = function(e){
 
   due_month = this.getDueMonth({ year: item.year, month: item.month});
   item.due_month = due_month;
+
   this.todo_list.updateToDoItem(item);
   $f.get(0).reset();
   this.view.$popup.hide();
   $el.find(":checkbox").prop("checked", false);
-  
   this.view.renderPage(this.todo_list);
 };
 Controller.prototype.markCompleted = function(){
@@ -375,7 +378,7 @@ Controller.prototype.clearPupup = function(){
   this.view.$todos.find(":checkbox").prop("checked", false);
 };
 Controller.prototype.saveToLocalStorage = function(){
-  localStorage.setItem("todos", JSON.stringify(this.todo_list.todos));
+  this.todo_list.setStorage();
 };
 
 Controller.prototype.getDueMonth = function(time){
@@ -398,7 +401,6 @@ Controller.prototype.bindEvents = function(){
 $(function(){
   var controller = new Controller();
   controller.init();
-  
 });
 
 
