@@ -13,10 +13,10 @@
 		<script type="text/x-handlebars-template" id="page_template">
 		<label for="show_nav" class="menu"><img src="images/menu_icon.png" alt="list_icon"></label>
 		<input type="checkbox" name="show_nav" id="show_nav" hidden>
-			<nav>
+			<nav id="nav">
 				<section>
 					<ul id="all_todos">
-						{{#if nav.allSelected}}
+						{{#if nav.allAreSelected}}
 							<li class="list_header selected"><a href="#" id="all" class="todo">All Todos <span class="tag">{{nav.total}}</span></a></li>
 						{{else}}
 							<li class="list_header"><a href="#" id="all" class="todo">All Todos <span class="tag">{{nav.total}}</span></a></li>
@@ -33,7 +33,7 @@
 				</section>
 				<section>
 					<ul id="completed">
-					  {{#if nav.allCompletedSelected}}
+					  {{#if nav.allCompletedAreSelected}}
 							<li class="list_header selected"><a href="#" class="completed" id="all_completed">Completed</a></li>
 						{{else}}
 							<li class="list_header"><a href="#" class="completed" id="all_completed">Completed</a></li>
@@ -58,6 +58,13 @@
 					<a href="#" id="add">Add new to do</a>
 				{{/unless}}
 				<ul id="todo_list">
+					{{#if isAddingNewItem}}
+						<li id="new_item">
+							<input type="checkbox" name="item">
+							<input type="text" name="title" autofocus>
+							<button class="delete_button"></button>
+						</li>
+					{{/if}}
 					{{#each content}}
 						{{#unless completed}}
 							<li id="item_{{id}}" class="" data-due="{{due_month}}" data-completed="false">
@@ -80,105 +87,53 @@
 					{{/each}}
 				</ul>
 			</div>
+			{{#if isPoped}}
+			<div id="popup">  
+				<div id="black_blur"></div>
+					<form action="" method="post">
+						<input type="hidden" name="id" value="{{popupData.id}}">
+						<table>
+							<tr>
+								<td><label for="title">Title</label></td>
+								<td><input type="text" name="title" id="title" value="{{popupData.title}}"></td>
+							</tr>
+							<tr>						
+								<td><label>Due Date</label></td>
+								<td>
+									<select required name="day" id="day" value="{{popupData.day}}">
+										{{{renderDays popupData.day}}}
+									</select><!--
+									--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div><!--
+									--><label>/</label><!--
+									--><select required name="month" id="month">
+										{{{renderMonths popupData.month}}}
+									</select><!--
+									--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div><!--
+									--><label>/</label><!--
+									--><select required name="year" id="year">
+										{{{renderYears popupData.year}}}
+									</select><!--
+									--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="align_top"><label for="description">Description</label></td>
+								<td><textarea placeholder="Description" id="description" name="description">{{popupData.description}}</textarea></td>
+							</tr>
+							{{#unless popupData.completed}}
+							<tr>
+								<td></td>
+								<td>
+									<button type="submit" id="save">Save</button>
+									<button type="button" id="mark_completed">Mark As Complete</button>
+								</td>
+							</tr>
+							{{/unless}}
+						</table>
+					</form>
+			</div>
+			{{/if}}
 		</script>
-		</main>
-		<div hidden id="popup">  
-			<div id="black_blur"></div>
-				<form action="" method="post">
-					<input type="hidden" name="id" value="">
-					<table>
-						<tr>
-							<td><label for="title">Title</label></td>
-							<td><input type="text" name="title" id="title" value=""></td>
-						</tr>
-						<tr>						
-							<td><label>Due Date</label></td>
-							<td>
-								<select required name="day" id="day">
-									<option value="" disabled selected hidden>Day</option>
-									<option value="1">1</option>
-									<option value="2">2</option>
-									<option value="3">3</option>
-									<option value="4">4</option>
-									<option value="5">5</option>
-									<option value="6">6</option>
-									<option value="7">7</option>
-									<option value="8">8</option>
-									<option value="9">9</option>
-									<option value="10">10</option>
-									<option value="11">11</option>
-									<option value="12">12</option>
-									<option value="13">13</option>
-									<option value="14">14</option>
-									<option value="15">15</option>
-									<option value="16">16</option>
-									<option value="17">17</option>
-									<option value="18">18</option>
-									<option value="19">19</option>
-									<option value="20">20</option>
-									<option value="21">21</option>
-									<option value="22">22</option>
-									<option value="23">23</option>
-									<option value="24">24</option>
-									<option value="25">25</option>
-									<option value="26">26</option>
-									<option value="27">27</option>
-									<option value="28">28</option>
-									<option value="29">29</option>
-									<option value="30">30</option>
-									<option value="31">31</option>
-								</select><!--
-								--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div><!--
-								--><label>/</label><!--
-								--><select required name="month" id="month">
-									<option value="" disabled selected hidden>Month</option>
-									<option value="1">1</option>
-									<option value="2">2</option>
-									<option value="3">3</option>
-									<option value="4">4</option>
-									<option value="5">5</option>
-									<option value="6">6</option>
-									<option value="7">7</option>
-									<option value="8">8</option>
-									<option value="9">9</option>
-									<option value="10">10</option>
-									<option value="11">11</option>
-									<option value="12">12</option>
-								</select><!--
-								--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div><!--
-								--><label>/</label><!--
-								--><select required name="year" id="year">
-									<option value="" disabled selected hidden>Year</option>
-									<option value="2016">2016</option>
-									<option value="2017">2017</option>
-									<option value="2018">2018</option>
-									<option value="2019">2019</option>
-									<option value="2020">2020</option>
-								</select><!--
-								--><div class="arrow"><img src="images/arrow.png" alt="arrow"></div>
-							</td>
-						</tr>
-						<tr>
-							<td class="align_top"><label for="description">Description</label></td>
-							<td><textarea placeholder="Description" id="description" name="description"></textarea></td>
-						</tr>
-						<tr>
-							<td></td>
-							<td>
-								<button type="submit" id="save">Save</button>
-								<button type="button" id="mark_completed">Mark As Complete</button>
-							</td>
-						</tr>
-					</table>
-				</form>
-		</div>
-		<script type="text/x-handlebars-template" id="add_todo_item_template">
-			<li id="new_item">
-				<input type="checkbox" name="item">
-				<input type="text" name="title" autofocus>
-				<button class="delete_button"></button>
-			</li>
-		</script>
-
+	</main>
 </body>
 </html>

@@ -2,6 +2,11 @@ var todo_list = (function(){
   var todos = [];
   var last_id = 0;
   var currentSelection = { due_month: "all", completed: false };
+  var currentStatus = {
+    isAddingNewItem: false,
+    isPoped: false,
+    popUpId: ""
+  };
   return {
     due_month_data: function(){
       var completed_due_month = {};
@@ -53,6 +58,9 @@ var todo_list = (function(){
     },
     getCurrentSelection: function(){
       return currentSelection;
+    },
+    getCurrentStatus: function(){
+      return currentStatus;
     },
     prepareToDoNavToDisplay: function(){
       var arr = [];
@@ -114,6 +122,7 @@ var todo_list = (function(){
       item.id = last_id + 1;
       last_id += 1;
       todos.unshift(item);
+      currentStatus.isAddingNewItem = false;
     },
     deleteToDoItemById: function(id){
       todos = todos.filter(function(obj){
@@ -127,6 +136,7 @@ var todo_list = (function(){
       var id = item.id;
       this.deleteToDoItemById(id);
       todos.unshift(item);
+      currentStatus.isPoped = false;
     },
     findItemById: function(id){
       var result;
@@ -145,36 +155,42 @@ var todo_list = (function(){
           return false;
         }
       });
+      currentStatus.isPoped = false;
     },
-    getToDoItemsByDueMonth: function(due_month){
+    getToDoItemsByDueMonth: function(due_month, completed){
       var result;
       result = todos.filter(function(item){
         if (due_month === "all") { return true; }
-        else if (item.completed === false && item.due_month === due_month) { return true; }
+        if (due_month === "all_completed" && item.completed === true){ return true; }
+        else if (item.completed === completed && item.due_month === due_month){ return true;}
         else { return false; }
       });
       return result;
     },
-    getCompletedItemsByDueMonth: function(due_month){
-      var result;
-      result = todos.filter(function(item){
-        if (due_month === "all_completed" && item.completed === true){ return true; }
-        else if (item.completed === true && item.due_month === due_month){ return true;}
-        else {return false;}
-      });
-      return result;
+    addNewInput: function(){
+      currentStatus.isAddingNewItem = true;
     },
-    
+    popupItem: function(id){
+      currentStatus.isPoped = true;
+      currentStatus.popUpId = id;
+    },
+    clearPopup: function(){
+      currentStatus.isPoped = false;
+    },
     appData: function(){
       var selectedItems;
       var currentSelectionCount = 0;
       var completed = currentSelection.completed;
       var due_month = currentSelection.due_month;
-      if (completed === false) { selectedItems = this.getToDoItemsByDueMonth(due_month); }
-      else { selectedItems = this.getCompletedItemsByDueMonth(due_month); }
+      var isPoped = currentStatus.isPoped;
+      var isAddingNewItem = currentStatus.isAddingNewItem;
+      var popupItem = {};
+      selectedItems = this.getToDoItemsByDueMonth(due_month, completed); 
+      
       if ( currentSelection.due_month === "all") { currentSelectionCount = this.getAllTodosCount(); }
       else { currentSelectionCount = selectedItems.length; }
-      return {
+      if (isPoped === true) { popupItem = this.findItemById(currentStatus.popUpId); }
+      return { 
         nav: {
           allAreSelected: currentSelection.due_month === "all",
           allCompletedAreSelected: currentSelection.due_month === "all_completed",
@@ -186,6 +202,17 @@ var todo_list = (function(){
           due_month: this.trasferToDisplayName(currentSelection.due_month), 
           count: currentSelectionCount, 
           completed: currentSelection.completed
+        },
+        isAddingNewItem: isAddingNewItem,
+        isPoped: isPoped, 
+        popupData: {
+          title: popupItem.title,
+          day: popupItem.day,
+          month: popupItem.month,
+          year: popupItem.year,
+          description: popupItem.description,
+          id: popupItem.id,
+          completed: popupItem.completed
         },
         content: selectedItems
       };
@@ -199,6 +226,59 @@ var todo_list = (function(){
 
 function View(){
   var view = {
+    registerHelers: function(){
+      window.Handlebars.registerHelper("renderDays", function(selected){
+        var result = "";
+        if (selected === undefined) {
+          result += "<option value='' disabled selected hidden>Day</option>";
+        }
+        else {
+          result += "<option value='' disabled hidden>Day</option>";
+        }
+        for (var i = 1; i < 32; i++) {
+          var selectedVal = "";
+          if ("" + i === selected){
+            selectedVal = "selected";
+          }
+          result += "<option " + selectedVal + " value='"+ i + "'> " + i + "</option>";
+        }
+        return new Handlebars.SafeString(result);
+      });
+      window.Handlebars.registerHelper("renderMonths", function(selected){
+        var result = "";
+        if (selected === undefined) {
+          result += "<option value='' disabled selected hidden>Month</option>";
+        }
+        else {
+          result += "<option value='' disabled hidden>Month</option>";
+        }
+        for (var i = 1; i < 13; i++) {
+          var selectedVal = "";
+          if ("" + i === selected){
+            selectedVal = "selected";
+          }
+          result += "<option " + selectedVal + " value='"+ i + "'> " + i + "</option>";
+        }
+        return new Handlebars.SafeString(result);
+      });
+      window.Handlebars.registerHelper("renderYears", function(selected){
+        var result = "";
+        if (selected === undefined) {
+          result += "<option value='' disabled selected hidden>Year</option>";
+        }
+        else {
+          result += "<option value='' disabled hidden>Year</option>";
+        }
+        for (var i = 2016; i < 2027; i++) {
+          var selectedVal = "";
+          if ("" + i === selected){
+            selectedVal = "selected";
+          }
+          result += "<option " + selectedVal + " value='"+ i + "'> " + i + "</option>";
+        }
+        return new Handlebars.SafeString(result);
+      });
+    },
     getTemplates: function(){
       var $templates = {};
       $("[type='text/x-handlebars-template']").each(function(idx, el){
@@ -213,16 +293,17 @@ function View(){
       return $new_item;
     },
     renderPage: function(app_data){
+
       $("main").empty();
       $("main").append(this.$templates.page_template(app_data));
     },
     init: function(){ 
       this.$templates = this.getTemplates();
+      this.registerHelers();
     }
   };
   return view;
 }
-
 
 function Controller(){
   var controller = {
@@ -246,23 +327,12 @@ function Controller(){
       this.updatePage();
     },
     popupItem: function(e){
+
       if (e.target.checked){
         var $e = $(e.target);
         var id = +$e.data().id;
-        var item = this.todo_list.findItemById(id);
-        var $popup = $("#popup");
-        var $f = $popup.find("form");
-        $popup.show();
-        $f.find("#title").val(item.title);
-        $f.find("#day").val(item.day);
-        $f.find("#month").val(item.month);
-        $f.find("#year").val(item.year);
-        $f.find("#description").val(item.description);
-        $f.find("input:hidden").val(id);
-        if ($e.closest("ul").attr("id") === "completed_list") {
-          $f.find("button").prop("disabled", true);
-        }
-        else { $f.find("button").prop("disabled", false); }
+        this.todo_list.popupItem(id);
+        this.updatePage();
       }
     },
     updateItem: function(e){
@@ -288,21 +358,19 @@ function Controller(){
 
       this.todo_list.updateToDoItem(item);
       $f.get(0).reset();
-      $("#popup").hide();
       this.updatePage();
     },
     markCompleted: function(){
       var $f = $("form");
       var id = +$f.find("input:hidden").val();
       $f.get(0).reset();
-      $("#popup").hide();
       this.todo_list.markCompletedById(id);
       this.updatePage();
     },
     addNewInput: function(e){
       e.preventDefault();
-      var $new_item = this.view.createNewInput();
-      $("#todos").find("#todo_list").prepend($new_item);
+      this.todo_list.addNewInput();
+      this.updatePage();
     },
     didSelectedNav: function(e){
       e.preventDefault();
@@ -315,9 +383,9 @@ function Controller(){
       this.todo_list.setCurrentSelection({ due_month: due_month, completed: completed });
       this.updatePage();
     },
-    clearPupup: function(){
-      $("#popup").hide();
-      $("#todos").find(":checkbox").prop("checked", false);
+    clearPopup: function(){
+      this.todo_list.clearPopup();
+      this.updatePage();
     },
     saveToLocalStorage: function(){
       this.todo_list.setStorage();
@@ -334,13 +402,23 @@ function Controller(){
     bindEvents: function(){
       var $todos = $("#todos");
       var $popup = $("#popup");
-      var $nav = $("nav");
+      var nav = document.getElementById("nav");
+
+
       $todos.on("click", "button", $.proxy(this.deleteItem, this));
       $todos.find("ul").on("change", "input[type='checkbox']", $.proxy(this.popupItem, this));
       $todos.on("blur", "input[type='text']", $.proxy(this.addNewItem, this));
       $todos.find("#add").on("click", $.proxy(this.addNewInput, this));
-      $nav.on("click", "a", $.proxy(this.didSelectedNav, this));
-      $popup.find("#black_blur").on("click", $.proxy(this.clearPupup, this));
+      //document.getElementById("add").onclick = this.addNewInput.bind(this);
+      //$nav.on("click", "a", $.proxy(this.didSelectedNav, this));
+      $popup.find("#black_blur").on("click", $.proxy(this.clearPopup, this));
+      //document.getElementById("black_blur").onclick = this.clearPopup.bind(this);
+      $("form").on("submit", $.proxy(this.updateItem, this));
+      $popup.find("#mark_completed").on("click", $.proxy(this.markCompleted, this));
+      //document.getElementById("mark_completed").onclick = this.markCompleted.bind(this);
+      //$(window).on("unload", $.proxy(this.saveToLocalStorage, this));
+      window.onunload = this.saveToLocalStorage.bind(this);
+      nav.onclick = this.didSelectedNav.bind(this);
     },
     init: function(){
       this.view.init();
@@ -354,9 +432,6 @@ function Controller(){
 $(function(){
   var controller = Object.create(Controller());
   controller.init();
-  $("form").on("submit", $.proxy(controller.updateItem, controller));
-  $("#popup").find("#mark_completed").on("click", $.proxy(controller.markCompleted, controller));
-  $(window).on("unload", $.proxy(controller.saveToLocalStorage, controller));
 });
 
 
