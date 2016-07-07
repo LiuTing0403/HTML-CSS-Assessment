@@ -99,7 +99,6 @@ var todo_list = (function(){
           })()
         };
         arr.push(item);
-        
       });
       arr.sort(this.sortByTime);
       return arr;
@@ -133,7 +132,7 @@ var todo_list = (function(){
       });
     },
     updateToDoItem: function(item){
-      var id = item.id;
+      var id = +item.id;
       this.deleteToDoItemById(id);
       todos.unshift(item);
       currentStatus.isPoped = false;
@@ -281,21 +280,18 @@ function View(){
     },
     getTemplates: function(){
       var $templates = {};
-      $("[type='text/x-handlebars-template']").each(function(idx, el){
-        var source = $(el).html();
-        var $template = Handlebars.compile(source);
-        $templates[el.id] = $template;
-      });
+      var template = document.getElementById("page_template");
+      var source = template.innerHTML;
+      $templates.page_template = Handlebars.compile(source);
       return $templates;
     },
-    createNewInput: function(){
-      var $new_item = this.$templates.add_todo_item_template();
-      return $new_item;
-    },
-    renderPage: function(app_data){
 
-      $("main").empty();
-      $("main").append(this.$templates.page_template(app_data));
+    renderPage: function(app_data){
+      
+      var element = this.$templates.page_template(app_data);
+      var main = document.getElementsByTagName("main")[0];
+      
+      main.innerHTML = element;
     },
     init: function(){ 
       this.$templates = this.getTemplates();
@@ -310,9 +306,8 @@ function Controller(){
     todo_list: todo_list,
     view: Object.create(View()),
     addNewItem: function(e){
-      var $e = $(e.target);
       var item = { 
-        title: $e.val(), 
+        title: e.target.value, 
         completed: false,
         due_month: "no_due"
       };  
@@ -321,49 +316,50 @@ function Controller(){
     },
     deleteItem: function(e){
       e.preventDefault();
-      var $e = $(e.target);
-      var id = $e.data().id;
+      
+      var id = +e.target.id;
       this.todo_list.deleteToDoItemById(id);
       this.updatePage();
     },
     popupItem: function(e){
-
-      if (e.target.checked){
-        var $e = $(e.target);
-        var id = +$e.data().id;
-        this.todo_list.popupItem(id);
-        this.updatePage();
-      }
+      e.preventDefault();
+      var id = +e.target.id;
+      this.todo_list.popupItem(id);
+      this.updatePage();
     },
     updateItem: function(e){
       e.preventDefault();
-      var $f = $("form");
-      var data = $f.serializeArray();
+      var form = e.target;
+      var elements = form.elements;
       var item = {};
       var due_date;
       var due_month;
       var due_date_string;
-      data.forEach(function(obj){
-        item[obj.name] = obj.value;
-        if (obj.name === "id") { item.id = +obj.value; }
-      }); 
-
+     
+      for (var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        if (el.tagName === "SELECT" || el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+          item[el.name] = el.value;
+        }
+      }
+      
       due_date = new Date(+item.year, item.month - 1, +item.day);
       due_date_string = due_date.toLocaleDateString();
       item.due_date = due_date_string;
       item.completed = false;
+      item.id = +item.id;
 
-      due_month = this.getDueMonth({ year: item.year, month: item.month});
+      due_month = this.calculateDueMonth({ year: item.year, month: item.month});
       item.due_month = due_month;
 
       this.todo_list.updateToDoItem(item);
-      $f.get(0).reset();
+      form.reset();
       this.updatePage();
     },
     markCompleted: function(){
-      var $f = $("form");
-      var id = +$f.find("input:hidden").val();
-      $f.get(0).reset();
+      var hidden_input = document.getElementById("hidden_input");
+      var id = +hidden_input.value;
+      document.getElementsByTagName("form")[0].reset();
       this.todo_list.markCompletedById(id);
       this.updatePage();
     },
@@ -374,14 +370,15 @@ function Controller(){
     },
     didSelectedNav: function(e){
       e.preventDefault();
-      var $e = $(e.target);
-      var due_month = $e.attr("id");
-      var completed = (function(){
-        if ($e.closest("ul").attr("id") === "all_todos") { return false; }
-        else { return true; }
-      })();
-      this.todo_list.setCurrentSelection({ due_month: due_month, completed: completed });
-      this.updatePage();
+      if (e.target.tagName === "A"){
+        var due_month = e.target.id;
+        var completed = (function(){
+          if (e.target.closest("ul").id === "all_todos") { return false; }
+          else { return true; }
+        })();
+        this.todo_list.setCurrentSelection({ due_month: due_month, completed: completed });
+        this.updatePage();
+      }
     },
     clearPopup: function(){
       this.todo_list.clearPopup();
@@ -390,7 +387,7 @@ function Controller(){
     saveToLocalStorage: function(){
       this.todo_list.setStorage();
     },
-    getDueMonth: function(time){
+    calculateDueMonth: function(time){
       var year = time.year.slice(-2);
       var month = time.month < 10 ? "0" + time.month : time.month;
       return month + "/" + year;
@@ -400,25 +397,38 @@ function Controller(){
       this.bindEvents();
     },
     bindEvents: function(){
-      var $todos = $("#todos");
-      var $popup = $("#popup");
+      var todos = document.getElementById("todos");
       var nav = document.getElementById("nav");
-
-
-      $todos.on("click", "button", $.proxy(this.deleteItem, this));
-      $todos.find("ul").on("change", "input[type='checkbox']", $.proxy(this.popupItem, this));
-      $todos.on("blur", "input[type='text']", $.proxy(this.addNewItem, this));
-      $todos.find("#add").on("click", $.proxy(this.addNewInput, this));
-      //document.getElementById("add").onclick = this.addNewInput.bind(this);
-      //$nav.on("click", "a", $.proxy(this.didSelectedNav, this));
-      $popup.find("#black_blur").on("click", $.proxy(this.clearPopup, this));
-      //document.getElementById("black_blur").onclick = this.clearPopup.bind(this);
-      $("form").on("submit", $.proxy(this.updateItem, this));
-      $popup.find("#mark_completed").on("click", $.proxy(this.markCompleted, this));
-      //document.getElementById("mark_completed").onclick = this.markCompleted.bind(this);
-      //$(window).on("unload", $.proxy(this.saveToLocalStorage, this));
+      var popup = document.getElementById("popup");
+      var new_input = document.getElementById("new_input");
+      var that = this;
+      todos.addEventListener("click", function (e) {
+        var target = e.target;
+        if (target instanceof HTMLAnchorElement) {
+          that.addNewInput(e);
+        }
+        if (target instanceof HTMLLabelElement) {
+          that.popupItem(e);
+        }
+        if (target instanceof HTMLButtonElement) {
+          that.deleteItem(e);
+        }
+      });
       window.onunload = this.saveToLocalStorage.bind(this);
       nav.onclick = this.didSelectedNav.bind(this);
+      if (new_input){
+        new_input.onblur = this.addNewItem.bind(this);
+      }
+      if (popup){
+        var form = popup.getElementsByTagName("form")[0];
+        var blur = document.getElementById("black_blur");
+        var mark_completed = document.getElementById("mark_completed");
+        blur.onclick = this.clearPopup.bind(this);
+        form.onsubmit = this.updateItem.bind(this);
+        if (mark_completed) {
+          mark_completed.onclick = this.markCompleted.bind(this);
+        }
+      }
     },
     init: function(){
       this.view.init();
@@ -429,10 +439,10 @@ function Controller(){
   };
   return controller;
 }
-$(function(){
+window.onload = function(){
   var controller = Object.create(Controller());
   controller.init();
-});
+};
 
 
 

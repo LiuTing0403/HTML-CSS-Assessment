@@ -4,13 +4,15 @@
 	<title>To Do List</title>
 	<meta charset="utf-8" content="width=device-width, initial-scale=1" name="viewport">
 	<link rel="stylesheet" type="text/css" href="style.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 	<script type="text/javascript" src="handlebars-latest.js"></script>
 	<script type="text/javascript" src="todos.js"></script>
 </head>
-<body>
+
+<body>	
 	<main>
-		<script type="text/x-handlebars-template" id="page_template">
+	<script type="text/x-handlebars-template" id="page_template">
+
+	
 		<label for="show_nav" class="menu"><img src="images/menu_icon.png" alt="list_icon"></label>
 		<input type="checkbox" name="show_nav" id="show_nav" hidden>
 			<nav id="nav">
@@ -60,16 +62,16 @@
 				<ul id="todo_list">
 					{{#if isAddingNewItem}}
 						<li id="new_item">
-							<input type="checkbox" name="item">
-							<input type="text" name="title" autofocus>
+							<input type="checkbox" name="item" class="list-item">
+							<input type="text" name="title" autofocus id="new_input">
 							<button class="delete_button"></button>
 						</li>
 					{{/if}}
 					{{#each content}}
 						{{#unless completed}}
 							<li id="item_{{id}}" class="" data-due="{{due_month}}" data-completed="false">
-								<label><input type="checkbox" name="item_{{id}}" data-id="{{id}}">{{title}}</label>
-								<button class="delete_button" data-id="{{id}}" data-due="{{due_month}}"></button>
+								<label id="{{id}}"><input type="checkbox" name="item_{{id}}" class="list-item">{{title}}</label>
+								<button class="delete_button" id="{{id}}" data-due="{{due_month}}"></button>
 								<p id="due_date"><time>{{due_date}}</time></p>
 							</li>
 						{{/unless}}
@@ -79,8 +81,8 @@
 				  {{#each content}}
 				  	{{#if completed}}
 							<li id="item_{{id}}" class="" data-due="{{due_month}}" data-completed="false">
-								<label><input type="checkbox" name="item_{{id}}" data-id="{{id}}">{{title}}</label>
-								<button class="delete_button" data-id="{{id}}" data-due="{{due_month}}"></button>
+								<label id="{{id}}"><input type="checkbox" name="item_{{id}}" class="list-item">{{title}}</label>
+								<button class="delete_button" id="{{id}}" data-due="{{due_month}}"></button>
 								<p id="due_date"><time>{{due_date}}</time></p>
 							</li>
 						{{/if}}
@@ -91,7 +93,7 @@
 			<div id="popup">  
 				<div id="black_blur"></div>
 					<form action="" method="post">
-						<input type="hidden" name="id" value="{{popupData.id}}">
+						<input type="hidden" name="id" value="{{popupData.id}}" id="hidden_input">
 						<table>
 							<tr>
 								<td><label for="title">Title</label></td>
@@ -133,7 +135,8 @@
 					</form>
 			</div>
 			{{/if}}
-		</script>
+	</script>
 	</main>
-</body>
+</body>	
+
 </html>
