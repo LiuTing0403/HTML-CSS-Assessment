@@ -1,17 +1,17 @@
-var todo_list = (function(){
-  var todos = [];
-  var last_id = 0;
-  var currentSelection = { due_month: "all", completed: false };
-  var currentStatus = {
-    isAddingNewItem: false,
-    isPoped: false,
-    popUpId: ""
-  };
+function TodoList() {
   return {
+    todos: [],
+    last_id: 0,
+    currentSelection: { due_month: "all", completed: false },
+    currentStatus: {
+      isAddingNewItem: false,
+      isPoped: false,
+      popUpId: ""
+    },
     due_month_data: function(){
       var completed_due_month = {};
       var todo_due_month = {};
-      todos.forEach(function(item){
+      this.todos.forEach(function(item){
         if (item.completed === true) {
           if (completed_due_month[item.due_month]) { completed_due_month[item.due_month] += 1; }
           else { completed_due_month[item.due_month] = 1; }
@@ -23,9 +23,6 @@ var todo_list = (function(){
       });
       return { completed_due_month: completed_due_month, todo_due_month: todo_due_month };
     },
-    getTodos: function(){
-      return todos;
-    },
     getAllTodosCount: function(){
       var total = 0;
       var todo_due_month = this.due_month_data().todo_due_month;
@@ -35,32 +32,26 @@ var todo_list = (function(){
       return total;
     },
     getStorage: function(){
-      todos = (function(){
+      this.todos = (function(){
         var local = localStorage.getItem("todos");
         if (local) { return JSON.parse(local); }
         return [];
       })();
     },
     setStorage: function(){
-      localStorage.setItem("todos", JSON.stringify(todos));
+      localStorage.setItem("todos", JSON.stringify(this.todos));
     },
     getLastId: function(){
       var id = 0;
-      if (todos.length === 0){ return 0; }
-      todos.forEach(function(item){
+      if (this.todos.length === 0){ return 0; }
+      this.todos.forEach(function(item){
         id = item.id > id ? +item.id : id;
       });
       return id;
     },
     setCurrentSelection: function(obj){
-      currentSelection.due_month = obj.due_month;
-      currentSelection.completed = obj.completed;
-    },
-    getCurrentSelection: function(){
-      return currentSelection;
-    },
-    getCurrentStatus: function(){
-      return currentStatus;
+      this.currentSelection.due_month = obj.due_month;
+      this.currentSelection.completed = obj.completed;
     },
     prepareToDoNavToDisplay: function(){
       var arr = [];
@@ -73,7 +64,7 @@ var todo_list = (function(){
           display_name: that.trasferToDisplayName(key),
           count: due_month_obj[key],
           selected: (function(){
-            if (currentSelection.completed === false && currentSelection.due_month === key) { return true; }
+            if (that.currentSelection.completed === false && that.currentSelection.due_month === key) { return true; }
             return false;
           })()
         };
@@ -94,7 +85,7 @@ var todo_list = (function(){
           display_name: that.trasferToDisplayName(key),
           count: due_month_obj[key],
           selected: (function(){
-            if (currentSelection.completed === true && currentSelection.due_month === key) { return true; }
+            if (that.currentSelection.completed === true && that.currentSelection.due_month === key) { return true; }
             return false;
           })()
         };
@@ -118,13 +109,13 @@ var todo_list = (function(){
       else { return 1; }
     },
     addNewToDoItem: function(item){
-      item.id = last_id + 1;
-      last_id += 1;
-      todos.unshift(item);
-      currentStatus.isAddingNewItem = false;
+      item.id = this.last_id + 1;
+      this.last_id += 1;
+      this.todos.unshift(item);
+      this.currentStatus.isAddingNewItem = false;
     },
     deleteToDoItemById: function(id){
-      todos = todos.filter(function(obj){
+      this.todos = this.todos.filter(function(obj){
         if (obj.id === id) { 
           return false; 
         }
@@ -134,12 +125,12 @@ var todo_list = (function(){
     updateToDoItem: function(item){
       var id = +item.id;
       this.deleteToDoItemById(id);
-      todos.unshift(item);
-      currentStatus.isPoped = false;
+      this.todos.unshift(item);
+      this.currentStatus.isPoped = false;
     },
     findItemById: function(id){
       var result;
-      todos.forEach(function(obj){
+      this.todos.forEach(function(obj){
         if (obj.id === +id){
           result = obj;
           return false;
@@ -148,17 +139,17 @@ var todo_list = (function(){
       return result;
     },
     markCompletedById: function(id){
-      todos.forEach(function(obj){
+      this.todos.forEach(function(obj){
         if (obj.id === +id){
           obj.completed = true;
           return false;
         }
       });
-      currentStatus.isPoped = false;
+      this.currentStatus.isPoped = false;
     },
     getToDoItemsByDueMonth: function(due_month, completed){
       var result;
-      result = todos.filter(function(item){
+      result = this.todos.filter(function(item){
         if (due_month === "all") { return true; }
         if (due_month === "all_completed" && item.completed === true){ return true; }
         else if (item.completed === completed && item.due_month === due_month){ return true;}
@@ -167,40 +158,40 @@ var todo_list = (function(){
       return result;
     },
     addNewInput: function(){
-      currentStatus.isAddingNewItem = true;
+      this.currentStatus.isAddingNewItem = true;
     },
     popupItem: function(id){
-      currentStatus.isPoped = true;
-      currentStatus.popUpId = id;
+      this.currentStatus.isPoped = true;
+      this.currentStatus.popUpId = id;
     },
     clearPopup: function(){
-      currentStatus.isPoped = false;
+      this.currentStatus.isPoped = false;
     },
     appData: function(){
       var selectedItems;
       var currentSelectionCount = 0;
-      var completed = currentSelection.completed;
-      var due_month = currentSelection.due_month;
-      var isPoped = currentStatus.isPoped;
-      var isAddingNewItem = currentStatus.isAddingNewItem;
+      var completed = this.currentSelection.completed;
+      var due_month = this.currentSelection.due_month;
+      var isPoped = this.currentStatus.isPoped;
+      var isAddingNewItem = this.currentStatus.isAddingNewItem;
       var popupItem = {};
       selectedItems = this.getToDoItemsByDueMonth(due_month, completed); 
       
-      if ( currentSelection.due_month === "all") { currentSelectionCount = this.getAllTodosCount(); }
+      if ( this.currentSelection.due_month === "all") { currentSelectionCount = this.getAllTodosCount(); }
       else { currentSelectionCount = selectedItems.length; }
-      if (isPoped === true) { popupItem = this.findItemById(currentStatus.popUpId); }
+      if (isPoped === true) { popupItem = this.findItemById(this.currentStatus.popUpId); }
       return { 
         nav: {
-          allAreSelected: currentSelection.due_month === "all",
-          allCompletedAreSelected: currentSelection.due_month === "all_completed",
+          allAreSelected: this.currentSelection.due_month === "all",
+          allCompletedAreSelected: this.currentSelection.due_month === "all_completed",
           total: this.getAllTodosCount(),
           todo_nav: this.prepareToDoNavToDisplay(),
           completed_nav: this.prepareCompletedNavToDisplay()
         },
         currentSelection: { 
-          due_month: this.trasferToDisplayName(currentSelection.due_month), 
+          due_month: this.trasferToDisplayName(this.currentSelection.due_month), 
           count: currentSelectionCount, 
-          completed: currentSelection.completed
+          completed: this.currentSelection.completed
         },
         isAddingNewItem: isAddingNewItem,
         isPoped: isPoped, 
@@ -218,10 +209,10 @@ var todo_list = (function(){
     },
     init: function(){
       this.getStorage();
-      last_id = this.getLastId();
+      this.last_id = this.getLastId();
     }
-  };
-})();
+  }
+}
 
 function View(){
   var view = {
@@ -303,7 +294,7 @@ function View(){
 
 function Controller(){
   var controller = {
-    todo_list: todo_list,
+    todo_list: Object.create(TodoList()),
     view: Object.create(View()),
     addNewItem: function(e){
       var item = { 
